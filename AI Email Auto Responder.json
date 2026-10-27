@@ -1,0 +1,131 @@
+{
+  "name": "AI Email Auto Responder",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e81bab67-eb1d-461f-a08f-d25080e9b33b",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VWxBsM0K0sahfHaD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a helpful email assistant. Write a short professional reply under 100 words. Just the body, no subject line"
+            },
+            {
+              "content": "=From: {{ $json.From }}\nSubject: {{ $json.Subject }}\nBody: {{ $json.snippet }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "f0819769-f6d1-484b-9bd0-8deaa91ef463",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "0ZRNLDJMQxcifdqA",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+        "message": "={{ $json.output[0].content[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "01ce4449-238a-488b-b410-67190f791378",
+      "name": "Send a message",
+      "webhookId": "88680d8a-71e6-4ddd-a9af-81d40696460d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VWxBsM0K0sahfHaD",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b158ec09-bce3-4bd8-b71d-8a543ff3f589",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "87ef9072c5c740df6f73adf76c2ab1cf35a5e73e36818a388d0e376bc456a3ee"
+  },
+  "id": "VAlbAyfrKuYd81si",
+  "tags": []
+}
